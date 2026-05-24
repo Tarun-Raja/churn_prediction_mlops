@@ -1,6 +1,5 @@
 name: MLOps CI/CD Pipeline
 
-# This tells GitHub to run this pipeline every time you push code to the main branch
 on:
   push:
     branches:
@@ -14,30 +13,39 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. Grab your code from the repository
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Set up a Python environment on the GitHub server
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: 'pip'
 
-      # 3. Install your project dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Run your Data Preprocessing & Model Training to generate artifacts
+      # Authenticate with AWS securely
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1  
+
+      # Download the data from S3
+      - name: Download Dataset from AWS S3
+        run: |
+          mkdir -p data/raw
+          aws s3 cp s3://churn-mlops-data-tarun/data/raw/churn_data.csv data/raw/churn_data.csv
+
       - name: Run ML Pipeline
         run: |
           python src/data/preprocess.py
           python src/models/train.py
 
-      # 5. Run your automated PyTest suite to ensure everything worked
       - name: Run Tests
         run: |
           pytest -v tests/
