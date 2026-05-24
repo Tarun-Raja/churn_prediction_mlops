@@ -65,6 +65,8 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = preprocess_and_split(cleaned_df)
     
     print("Saving processed data...")
+    os.makedirs("data/processed", exist_ok=True)
+    
     X_train.to_csv("data/processed/X_train.csv", index=False)
     X_test.to_csv("data/processed/X_test.csv", index=False)
     y_train.to_csv("data/processed/y_train.csv", index=False)
